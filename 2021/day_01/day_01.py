@@ -1,7 +1,7 @@
 import numpy as np
 import timeit
-with open('input.txt') as file:
-    depths = np.asarray([int(line) for line in file])
+
+depths =  np.loadtxt('input.txt')
 
 # part 1
 print(depths.shape, depths, )
