@@ -1,7 +1,6 @@
 import numpy as np
 
 with open('input.txt') as file:
-
     bingo_boards = list()
     for ll, line in enumerate(file):
         if ll == 0:
