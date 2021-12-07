@@ -1,7 +1,6 @@
+import timeit
 import numpy as np
-import matplotlib.pyplot as plt
 start_pop_vctr = np.loadtxt('input.txt', dtype=int, delimiter=',')
-
 
 def sim_generatiosn(pop_vctr, n_days):
     for d in range(n_days):
@@ -28,67 +27,53 @@ sim_vctr = sim_generatiosn(start_pop_vctr, days)
 print(f'there is {sim_vctr.shape[0]} fish after {days}')
 
 # part 2
-# define a function to calculate direct offspring given n days
-def direct_offspring(pop, stage, time):
-    cycle_raw = (time-stage+5)/6
-    cycle_poss = np.maximum(np.zeros_like(cycle_raw), cycle_raw) # negatives to zero
-    cycle_int = np.floor(cycle_poss) # integers for discrete time points
-    offspring = pop * cycle_int # took me a while, empirically tested
-    return offspring
+
+# this shit took me more time that I would like to admit
+
+def fish_cycles(start_vctr, generations, print_gen=False):
+
+    # summarizes initial vector as a count of fishes in each cycle stage
+    stage, count = np.unique(start_vctr, return_counts=True)
+
+    # pads the count vctr for stages with no fishes i.e. adds zeros
+    pop_vctr = np.zeros(7)
+    for ss, cc in zip(stage,count):
+        pop_vctr[ss] = cc
+
+    # instead of moving the fishes througn cycles, move the cycle (stage idx) through fishes, defines cycle
+    normal_cycle = np.arange(7)
+
+    # simple hack to account for two extra juvenile days
+    juv_vctr = np.zeros(2)
+
+    for i in range(generations):
+        if print_gen:
+            print(np.concatenate((pop_vctr[np.argsort(normal_cycle)], juv_vctr)))
+
+        # juvenile about to enter main cycle
+        new_adults = juv_vctr[0]
+        # juveniles growing
+        juv_vctr[0] = juv_vctr[1]
+
+        # new juveniles
+        juv_vctr[1] = pop_vctr[normal_cycle == 0]
+
+        # update the stage in the adult population
+        normal_cycle = np.roll(normal_cycle, shift=1)
+
+        # coming of age
+        pop_vctr[normal_cycle == 6] = pop_vctr[normal_cycle == 6] + new_adults
 
 
-# # empirical test, dont ask me, Im a shitty data scientist
-# fig , ax = plt.subplots()
-# for ss in range(9):
-#     ofp = list()
-#     for tt in range(30):
-#         ofp.append(direct_offspring(1, ss, tt))
-#
-#     ax.plot(ofp,label=f'{ss}')
-# ax.legend()
-# fig.show()
+    return np.sum(pop_vctr) + np.sum(juv_vctr)
 
+fish_cycles(start_pop_vctr, 256)
 
-# reccursively call offspring function for children
-
-
-def recurse_linearity(pop, stage, time, cum_pop=0):
-    for tt in range(time):
-        do = direct_offspring(pop, stage, tt)
-        if any(do > 0):
-            cum_pop += recurse_linearity(do[do>0],8,time-tt, cum_pop=cum_pop)
-    else:
-        return np.sum(pop) + cum_pop
-
-
-yyy = list()
-for t in range(5):
-    yyy.append(recurse_linearity(np.asarray([1]),
-                      np.asarray([0]),
-                      t))
-
-
-fig, ax = plt.subplots()
-ax.plot(yyy)
-fig.show()
-
-
-
+timeit.timeit(lambda: fish_cycles(start_pop_vctr, 256), number=1) # 0.0067524379119277 seconds
 
 
 
 
 
-
-
-
-
-
-
-
-
-days = 256
-sim_vctr = sim_generatiosn(start_pop_vctr, days)
-print(f'there is {sim_vctr.shape[0]} fish after {days}')
 
 
