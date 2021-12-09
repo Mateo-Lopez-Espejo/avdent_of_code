@@ -70,10 +70,3 @@ def fish_cycles(start_vctr, generations, print_gen=False):
 fish_cycles(start_pop_vctr, 256)
 
 timeit.timeit(lambda: fish_cycles(start_pop_vctr, 256), number=1) # 0.0067524379119277 seconds
-
-
-
-
-
-
-
